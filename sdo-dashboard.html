@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SDO Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tabletop@1.6.0/tabletop.min.js"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+  <div class="flex h-screen">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-blue-900 text-white flex flex-col">
+      <div class="p-4 text-xl font-bold border-b border-blue-700">Bayugan City SDO</div>
+      <nav class="flex-1 p-4 space-y-2 text-sm">
+        <a href="#" class="block py-2 px-3 rounded hover:bg-blue-700">🏫 Schools Overview</a>
+        <a href="#" class="block py-2 px-3 rounded hover:bg-blue-700">👥 Learner Data</a>
+        <a href="#" class="block py-2 px-3 rounded hover:bg-blue-700">🧑‍🏫 Personnel & HR</a>
+        <a href="#" class="block py-2 px-3 rounded hover:bg-blue-700">💰 Budget & Utilization</a>
+        <a href="#" class="block py-2 px-3 rounded hover:bg-blue-700">📅 Calendar & Schedules</a>
+        <a href="#" class="block py-2 px-3 rounded hover:bg-blue-700">📊 KPIs & Performance</a>
+        <a href="#" class="block py-2 px-3 rounded hover:bg-blue-700">📝 Document Compliance</a>
+        <a href="#" class="block py-2 px-3 rounded hover:bg-blue-700">🛡️ DRRM Monitoring</a>
+        <a href="#" class="block py-2 px-3 rounded hover:bg-blue-700">📂 Records & Communication</a>
+        <a href="#" class="block py-2 px-3 rounded hover:bg-blue-700">🔍 Custom Reports</a>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 overflow-y-auto">
+      <!-- Header -->
+      <header class="bg-white shadow p-4 flex items-center justify-between">
+        <h1 class="text-xl font-semibold">Schools Division Dashboard</h1>
+        <div class="flex items-center gap-4">
+          <span class="text-sm text-gray-600">Logged in as: <strong>SDS Admin</strong></span>
+          <img src="https://via.placeholder.com/32" class="rounded-full" alt="Profile">
+        </div>
+      </header>
+
+      <!-- KPI Cards -->
+      <section class="grid grid-cols-1 md:grid-cols-4 gap-4 p-4">
+        <div class="bg-white p-4 rounded-xl shadow">
+          <div class="text-sm text-gray-500">Total Enrolment</div>
+          <div class="text-2xl font-bold text-blue-700">25,389</div>
+        </div>
+        <div class="bg-white p-4 rounded-xl shadow">
+          <div class="text-sm text-gray-500">Teachers</div>
+          <div class="text-2xl font-bold text-green-600">1,214</div>
+        </div>
+        <div class="bg-white p-4 rounded-xl shadow">
+          <div class="text-sm text-gray-500">Dropout Rate</div>
+          <div class="text-2xl font-bold text-red-600">1.8%</div>
+        </div>
+        <div class="bg-white p-4 rounded-xl shadow">
+          <div class="text-sm text-gray-500">Budget Utilization</div>
+          <div class="text-2xl font-bold text-yellow-600">89.2%</div>
+        </div>
+      </section>
+
+      <!-- Charts Section -->
+      <section class="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
+        <div class="bg-white p-6 rounded-xl shadow">
+          <h2 class="text-lg font-semibold mb-4">Enrolment by District</h2>
+          <canvas id="enrolmentChart"></canvas>
+        </div>
+        <div class="bg-white p-6 rounded-xl shadow">
+          <h2 class="text-lg font-semibold mb-4">Teacher Distribution</h2>
+          <canvas id="teacherChart"></canvas>
+        </div>
+      </section>
+
+      <!-- Map Section -->
+      <section class="p-4">
+        <div class="bg-white p-6 rounded-xl shadow">
+          <h2 class="text-lg font-semibold mb-4">School Locations Map</h2>
+          <div id="schoolMap" class="h-96 w-full rounded-xl"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    // Sample Enrolment Chart
+    new Chart(document.getElementById('enrolmentChart'), {
+      type: 'bar',
+      data: {
+        labels: ['North', 'South', 'Central', 'East', 'West'],
+        datasets: [{
+          label: 'Enrolment',
+          data: [5200, 4300, 6700, 3100, 4089],
+          backgroundColor: 'rgba(59, 130, 246, 0.7)'
+        }]
+      },
+      options: { responsive: true, plugins: { legend: { display: false } } }
+    });
+
+    // Sample Teacher Chart
+    new Chart(document.getElementById('teacherChart'), {
+      type: 'pie',
+      data: {
+        labels: ['Elementary', 'Junior HS', 'Senior HS'],
+        datasets: [{
+          data: [600, 400, 214],
+          backgroundColor: ['#10b981', '#f59e0b', '#ef4444']
+        }]
+      }
+    });
+
+    // Sample Map
+    const map = L.map('schoolMap').setView([8.7126, 125.7481], 11);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+    // Example markers
+    L.marker([8.725, 125.75]).addTo(map).bindPopup('Bayugan NHS');
+    L.marker([8.715, 125.76]).addTo(map).bindPopup('Taglatawan ES');
+
+    // Example Google Sheets Integration
+    Tabletop.init({
+      key: 'https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID_HERE/pubhtml',
+      callback: function(data) {
+        console.log("Live Sheet Data:", data);
+      },
+      simpleSheet: true
+    });
+  </script>
+</body>
+</html>
