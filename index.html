@@ -61,14 +61,11 @@
       </section>
 
       <!-- Charts Section -->
-      <section class="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
+      <section class="p-4 space-y-4">
         <div class="bg-white p-6 rounded-xl shadow">
           <h2 class="text-lg font-semibold mb-4">Enrolment by District</h2>
+          <select id="districtSelect" class="mb-4 p-2 border rounded w-full md:w-64"></select>
           <canvas id="enrolmentChart"></canvas>
-        </div>
-        <div class="bg-white p-6 rounded-xl shadow">
-          <h2 class="text-lg font-semibold mb-4">Teacher Distribution</h2>
-          <canvas id="teacherChart"></canvas>
         </div>
       </section>
 
@@ -83,50 +80,69 @@
   </div>
 
   <script>
-    // Sample Enrolment Chart
-    new Chart(document.getElementById('enrolmentChart'), {
-      type: 'bar',
-      data: {
-        labels: ['North', 'South', 'Central', 'East', 'West'],
-        datasets: [{
-          label: 'Enrolment',
-          data: [5200, 4300, 6700, 3100, 4089],
-          backgroundColor: 'rgba(59, 130, 246, 0.7)'
-        }]
+    let enrolmentChart;
+
+    Tabletop.init({
+      key: 'https://docs.google.com/spreadsheets/d/1VNDu8ah5Be6xdcP-yph3fPI2IPG6MuJXktfiqijpDR4/edit?gid=0#gid=0',
+      callback: function(data) {
+        const districtMap = {};
+        data.forEach(row => {
+          const district = row['District'];
+          const school = row['School'];
+          const enrolment = parseInt(row['Enrolment'], 10);
+          if (!districtMap[district]) {
+            districtMap[district] = { labels: [], data: [] };
+          }
+          districtMap[district].labels.push(school);
+          districtMap[district].data.push(enrolment);
+        });
+
+        const select = document.getElementById('districtSelect');
+        select.innerHTML = '';
+        Object.keys(districtMap).forEach(district => {
+          const opt = document.createElement('option');
+          opt.value = district;
+          opt.textContent = district;
+          select.appendChild(opt);
+        });
+
+        select.addEventListener('change', (e) => {
+          const d = e.target.value;
+          updateEnrolmentChart(districtMap[d]);
+        });
+
+        const firstDistrict = Object.keys(districtMap)[0];
+        updateEnrolmentChart(districtMap[firstDistrict]);
       },
-      options: { responsive: true, plugins: { legend: { display: false } } }
+      simpleSheet: true
     });
 
-    // Sample Teacher Chart
-    new Chart(document.getElementById('teacherChart'), {
-      type: 'pie',
-      data: {
-        labels: ['Elementary', 'Junior HS', 'Senior HS'],
-        datasets: [{
-          data: [600, 400, 214],
-          backgroundColor: ['#10b981', '#f59e0b', '#ef4444']
-        }]
-      }
-    });
+    function updateEnrolmentChart(districtObj) {
+      const ctx = document.getElementById('enrolmentChart').getContext('2d');
+      if (enrolmentChart) enrolmentChart.destroy();
+      enrolmentChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: districtObj.labels,
+          datasets: [{
+            label: 'Enrolment',
+            data: districtObj.data,
+            backgroundColor: 'rgba(59, 130, 246, 0.7)'
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display: false } }
+        }
+      });
+    }
 
-    // Sample Map
     const map = L.map('schoolMap').setView([8.7126, 125.7481], 11);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
-    // Example markers
     L.marker([8.725, 125.75]).addTo(map).bindPopup('Bayugan NHS');
     L.marker([8.715, 125.76]).addTo(map).bindPopup('Taglatawan ES');
-
-    // Example Google Sheets Integration
-    Tabletop.init({
-      key: 'https://docs.google.com/spreadsheets/d/1VNDu8ah5Be6xdcP-yph3fPI2IPG6MuJXktfiqijpDR4/edit?gid=0#gid=0',
-      callback: function(data) {
-        console.log("Live Sheet Data:", data);
-        // You can use the data to update cards, charts, etc.
-      },
-      simpleSheet: true
-    });
   </script>
 </body>
 </html>
